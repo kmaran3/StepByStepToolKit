@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Rankings{% endblock %}
+
+{% block content %}
+<h1>Player Rankings</h1>
+<table id="rankings-table">
+    <thead>
+        <tr>
+            <th>Player</th>
+            <th>Rank</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in players %}
+        <tr>
+            <td>{{ player.Player }}</td>
+            <td>{{ player.Rank }}</td>
+            <td>
+                <button onclick="movePlayer('{{ player.Player }}', 'up')">Move Up</button>
+                <button onclick="movePlayer('{{ player.Player }}', 'down')">Move Down</button>
+                <button onclick="highlightPlayer(this)">Highlight</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function movePlayer(player, direction) {
+    fetch('/move', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({player: player, direction: direction})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateTable(data.players);
+        }
+    });
+}
+
+function updateTable(players) {
+    const tableBody = document.querySelector('#rankings-table tbody');
+    tableBody.innerHTML = '';
+    players.forEach(player => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${player.Player}</td>
+            <td>${player.Rank}</td>
+            <td>
+                <button onclick="movePlayer('${player.Player}', 'up')">Move Up</button>
+                <button onclick="movePlayer('${player.Player}', 'down')">Move Down</button>
+                <button onclick="highlightPlayer(this)">Highlight</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function highlightPlayer(button) {
+    const row = button.closest('tr');
+    row.classList.toggle('highlight');
+}
+</script>
+
+<style>
+.highlight {
+    background-color: yellow;
+}
+</style>
+{% endblock %}
