@@ -90,3 +90,18 @@ footer {
     max-width: 200px;
     height: auto;
 }
+
+table {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+
+
