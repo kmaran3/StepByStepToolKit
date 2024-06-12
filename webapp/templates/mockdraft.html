@@ -3,7 +3,7 @@
 {% block title %}Mock Draft{% endblock %}
 
 {% block content %}
-<h1>Mock Draft</h1>
+<h1>Mock Draft Against Us</h1>
 <form action="{{ url_for('main.mock_draft') }}" method="post">
     <label for="position">Select your draft position:</label>
     <select name="position" id="position">
@@ -14,13 +14,19 @@
     <button type="submit">Start Draft</button>
 </form>
 
+<div id="userPicks">
+    <h2>Your Picks:</h2>
+    <ul id="pickedPlayers"></ul>
+</div>
+
 {% if player_data %}
     <h2>Player Rankings:</h2>
-    <table>
+    <table id="playerTable">
         <thead>
             <tr>
                 <th>Player Name</th>
                 <th>ESPN Value</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -28,9 +34,50 @@
             <tr>
                 <td>{{ player }}</td>
                 <td>{{ value }}</td>
+                <td><button onclick="draftPlayer(this, '{{ player }}')">Draft</button></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 {% endif %}
+
+<script>
+let userPosition = parseInt('{{ draft_position }}');
+let currentRound = 1; // Start with the first round
+let totalPositions = 12; // Total number of draft positions
+let draftDirection = 1; // 1 for forward, -1 for reverse
+
+function draftPlayer(button, playerName) {
+    // Add player to the user's picks
+    document.getElementById('pickedPlayers').innerHTML += `<li>${playerName}</li>`;
+    // Remove the player's row from the table
+    button.parentElement.parentElement.remove();
+    // Continue drafting
+    startDraft();
+}
+
+function startDraft() {
+    const table = document.getElementById('playerTable');
+    let rowsRemoved = 0;
+
+    let intervalId = setInterval(() => {
+        if (rowsRemoved < userPosition - 1) {
+            if (table.rows.length > 1) {
+                table.deleteRow(1); // Always remove the first row (index 1)
+                rowsRemoved++;
+            } else {
+                clearInterval(intervalId);
+            }
+        } else {
+            clearInterval(intervalId); // Stop when it reaches the user's turn
+            // Enable draft buttons only for visible players
+            Array.from(table.querySelectorAll('button')).forEach(button => {
+                button.disabled = false;
+            });
+        }
+    }, 1000); // Delay of 1 second between each row removal
+}
+
+document.addEventListener('DOMContentLoaded', startDraft); // Start when the page is ready
+</script>
 {% endblock %}
