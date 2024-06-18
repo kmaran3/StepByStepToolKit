@@ -3,16 +3,11 @@ from flask_login import login_user, current_user, logout_user, login_required, L
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
+from . import db, User
 
 
 main = Blueprint('main', __name__)
-
-class User(UserMixin):
-    def __init__(self, username):
-        self.id = username
-
-users = {'admin': {'password': 'secret'}}
 
 @main.route('/', methods=['GET', 'POST'])
 def login():
@@ -20,25 +15,38 @@ def login():
         return redirect(url_for('main.home'))
     form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        if username in users and users[username]['password'] == password:
-            user = User(username)
+        user = User.query.filter_by(id=form.username.data).first()
+        if user and user.password == form.password.data:
             login_user(user)
             return redirect(url_for('main.home'))
         else:
             flash('Invalid username or password')
     return render_template('login.html', form=form)
 
-@main.route('/home')
-#@login_required
-def home():
-    return render_template('home.html')
-
 @main.route('/logout')
 def logout():
     logout_user()
+    flash('You have been logged out.')
     return redirect(url_for('main.login'))
+
+@main.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(id=form.username.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Thanks for registering, please log in.')
+        return redirect(url_for('main.login'))
+    return render_template('register.html', form=form)
+
+@main.route('/home')
+@login_required
+def home():
+    return render_template('home.html')
+
 
 @main.route('/about')
 def about():
@@ -49,6 +57,7 @@ def contact():
     return render_template('contact.html')
 
 @main.route('/rankings')
+@login_required
 def rankings():
     # URL of the webpage
     url = 'https://www.footballguys.com/adp'
@@ -81,6 +90,7 @@ def rankings():
     return render_template('rankings.html', table=html_data)
 
 @main.route('/mockdraft', methods=['GET', 'POST'])
+@login_required
 def mock_draft():
     if request.method == 'POST':
         draft_position = request.form['position']
