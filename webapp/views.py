@@ -1,13 +1,44 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask_login import login_user, current_user, logout_user, login_required, LoginManager, UserMixin
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from .forms import LoginForm
+
 
 main = Blueprint('main', __name__)
 
-@main.route('/')
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
+
+users = {'admin': {'password': 'secret'}}
+
+@main.route('/', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        if username in users and users[username]['password'] == password:
+            user = User(username)
+            login_user(user)
+            return redirect(url_for('main.home'))
+        else:
+            flash('Invalid username or password')
+    return render_template('login.html', form=form)
+
+@main.route('/home')
+#@login_required
 def home():
     return render_template('home.html')
+
+@main.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('main.login'))
 
 @main.route('/about')
 def about():

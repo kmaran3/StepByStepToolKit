@@ -19,10 +19,16 @@ nav ul {
     margin: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 nav ul li {
     margin: 0 1em;
+}
+
+nav ul li.login {
+    margin-left: auto;  /* This will push the login/logout item to the right */
 }
 
 nav ul li a {
@@ -42,7 +48,6 @@ footer {
     text-align: center;
     padding: 1em 0;
     position: relative;
-    width: 100%;
     bottom: 0;
 }
 
@@ -102,6 +107,3 @@ th, td {
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
-
-
-
