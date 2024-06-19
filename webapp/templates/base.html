@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Darkhorse{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li><a href="{{ url_for('main.rankings') }}">Rankings</a></li>
+                <li><a href="{{ url_for('main.mock_draft') }}">Mock Draft</a></li>
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                {% if current_user.is_authenticated %}
+                    <li class="login"><a class="button" href="{{ url_for('main.logout') }}">Logout</a></li>
+                {% else %}
+                    <li class="login"><a class="button" href="{{ url_for('main.login') }}">Login</a></li>
+                    <li class="register"><a class="button" href="{{ url_for('main.register') }}">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>© 2024 Darkhorse CopyrightTM</p>
+    </footer>
+</body>
+</html>
