@@ -3,6 +3,7 @@
 {% block title %}Mock Draft{% endblock %}
 
 {% block content %}
+
 <h1>Mock Draft</h1>
 <form action="{{ url_for('main.mock_draft') }}" method="post">
     <label for="position">Select your draft position:</label>
@@ -13,32 +14,30 @@
     </select>
     <button type="submit">Start Draft</button>
 </form>
-
 <div id="userPicks">
     <h2>Your Picks:</h2>
     <ul id="pickedPlayers"></ul>
 </div>
-
 {% if player_data %}
-    <h2>Player Rankings:</h2>
-    <table id="playerTable">
-        <thead>
-            <tr>
-                <th>Player Name</th>
-                <th>ESPN Value</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for player, value in player_data %}
-            <tr>
-                <td>{{ player }}</td>
-                <td>{{ value }}</td>
-                <td><button onclick="draftPlayer(this, '{{ player }}')">Draft</button></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<h2>Player Rankings:</h2>
+<table id="playerTable">
+<thead>
+<tr>
+<th>Player Name</th>
+<th>ESPN Value</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+{% for player, value in player_data %}
+<tr>
+<td>{{ player }}</td>
+<td>{{ value }}</td>
+<td><button onclick="draftPlayer(this, '{{ player }}')">Draft</button></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
 {% endif %}
 
 <script>

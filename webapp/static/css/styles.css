@@ -27,13 +27,15 @@ nav ul li {
     margin: 0 1em;
 }
 
-nav ul li.login {
-    margin-left: auto;  /* This will push the login/logout item to the right */
-}
 
 nav ul li a {
     color: #f8f39fee;
     text-decoration: none;
+    
+}
+
+nav ul li.login {
+    margin-left: auto;  /* This will push the login/logout item to the right */
 }
 
 main {
