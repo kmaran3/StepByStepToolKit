@@ -27,6 +27,21 @@ nav ul li {
     margin: 0 1em;
 }
 
+.btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: fixed; /* Keeps the button group fixed on the page */
+}
+
+.btn-group-vertical .btn {
+    margin-bottom: 5px;
+}
+
+.btn-bold {
+    font-weight: bold;
+}
+
 
 nav ul li a {
     color: #f8f39fee;

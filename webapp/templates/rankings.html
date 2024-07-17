@@ -4,7 +4,35 @@
 
 {% block content %}
 <h1>Player Rankings</h1>
-<!-- Data table will be inserted here -->
-{{ table|safe }}
+<div class="btn-group-vertical mb-3" role="group" aria-label="CSV Selector" style="position: fixed;">
+    <button class="btn btn-primary" id="ppr_btn" onclick="showTable('ppr')">PPR</button>
+    <button class="btn btn-primary" id="half_ppr_btn" onclick="showTable('half_ppr')">Half PPR</button>
+    <button class="btn btn-primary" id="standard_btn" onclick="showTable('standard')">Standard</button>
+</div>
+
+<div id="ppr_table" class="ranking-table">
+    {{ ppr_table|safe }}
+</div>
+<div id="half_ppr_table" class="ranking-table" style="display:none;">
+    {{ half_ppr_table|safe }}
+</div>
+<div id="standard_table" class="ranking-table" style="display:none;">
+    {{ standard_table|safe }}
+</div>
+
+<script>
+function showTable(type) {
+    document.getElementById('ppr_table').style.display = 'none';
+    document.getElementById('half_ppr_table').style.display = 'none';
+    document.getElementById('standard_table').style.display = 'none';
+    document.getElementById(type + '_table').style.display = 'block';
+
+    document.getElementById('ppr_btn').classList.remove('btn-bold');
+    document.getElementById('half_ppr_btn').classList.remove('btn-bold');
+    document.getElementById('standard_btn').classList.remove('btn-bold');
+
+    document.getElementById(type + '_btn').classList.add('btn-bold');
+}
+</script>
 {% endblock %}
 

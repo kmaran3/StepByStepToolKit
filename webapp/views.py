@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask import Blueprint, render_template, url_for, flash, redirect, request, send_from_directory
 from flask_login import login_user, current_user, logout_user, login_required, LoginManager, UserMixin
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from .forms import LoginForm, RegistrationForm
-from . import db, User
+from webapp.forms import LoginForm, RegistrationForm
+from webapp import db, User
 
 
 main = Blueprint('main', __name__)
@@ -56,38 +56,24 @@ def about():
 def contact():
     return render_template('contact.html')
 
+def get_csv_data(filename):
+    # Read CSV file and select specific columns
+    df = pd.read_csv(filename, usecols=['Name', 'Team', 'Position', 'ESPN ADP'])
+    # Convert to HTML table
+    html_table = df.to_html(classes='table table-striped', index=False)
+    return html_table
+
 @main.route('/rankings')
 @login_required
 def rankings():
-    # URL of the webpage
-    url = 'https://www.footballguys.com/adp'
-    # Fetch the HTML content from the URL
-    response = requests.get(url)
-    player_data = []
-    if response.status_code == 200:
-        html_content = response.text
-        # Create a BeautifulSoup object
-        soup = BeautifulSoup(html_content, 'html.parser')
-        # Extract player data
-        rows = soup.find_all('tr')
-        for row in rows:
-            name_td = row.find('td', class_='name sticky-col text-start')
-            if name_td:
-                name_a = name_td.find('a')
-                if name_a:
-                    player_name = name_a.get_text().strip()
-                    tds = row.find_all('td')
-                    if len(tds) >= 9:
-                        espn_value = tds[8].get_text().strip()
-                        player_data.append((player_name, espn_value))
-        # Sort and create DataFrame
-        player_data_sorted = sorted(player_data, key=lambda x: int(x[1]) if x[1].isdigit() else float('inf'))
-        df = pd.DataFrame(player_data_sorted, columns=['Player Name', 'ESPN Ranking'])
-        html_data = df.to_html(index=False, classes="table table-striped")
-    else:
-        html_data = "<p>Failed to retrieve data.</p>"
+    ppr_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Full PPR Rankings with Weighted VBD.csv')
+    half_ppr_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Half PPR Rankings with Weighted VBD.csv')
+    standard_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Non PPR Rankings with Weighted VBD.csv')
+    return render_template('rankings.html', ppr_table=ppr_table, half_ppr_table=half_ppr_table, standard_table=standard_table)
 
-    return render_template('rankings.html', table=html_data)
+@main.route('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Half PPR Rankings with Weighted VBD.csv')
+def get_csv(filename):
+    return send_from_directory('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings', filename)
 
 @main.route('/mockdraft', methods=['GET', 'POST'])
 @login_required
