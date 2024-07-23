@@ -1,4 +1,5 @@
 from flask import Flask
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 
@@ -9,6 +10,18 @@ class User(UserMixin, db.Model):
     id = db.Column(db.String(100), primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)  # New email column
     password = db.Column(db.String(100))
+    lists = db.relationship('UserList', backref='owner', lazy=True)
+
+class UserList(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    items = db.relationship('ListItem', backref='list', lazy=True)
+
+class ListItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    list_id = db.Column(db.Integer, db.ForeignKey('user_list.id'), nullable=False)
+    content = db.Column(db.String(150), nullable=False)
 
 def create_app():
     app = Flask(__name__)

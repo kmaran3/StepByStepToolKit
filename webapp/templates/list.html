@@ -1,0 +1,49 @@
+<div class="saved-lists mt-3">
+    <h3>Saved Lists</h3>
+    <ul id="saved-lists">
+        {% for item in items %}
+            <li><a href="#" onclick="loadSavedList('{{ item.id }}')">{{ item.content }}</a></li>
+        {% endfor %}
+    </ul>
+    <form method="POST" action="{{ url_for('main.rankings') }}">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.content.label }}<br>
+            {{ form.content(size=32) }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+    <button id="saveListButton" disabled>Save List</button>
+</div>
+
+<script>
+function loadSavedList(listId) {
+    $.ajax({
+        url: '/api/list/' + listId,
+        method: 'GET',
+        success: function(data) {
+            console.log("Data received from server:", data);  // Debugging line
+            updateTable(data.items);
+        },
+        error: function(xhr, status, error) {
+            console.error("Failed to load saved list:", error);  // Error handling
+        }
+    });
+}
+
+function updateTable(items) {
+    let table = '<table class="table">';
+    items.forEach(function(item) {
+        table += '<tr data-id="' + item.id + '"><td>' + item.content + '</td></tr>';
+    });
+    table += '</table>';
+    
+    document.getElementById('ppr_table').innerHTML = table;
+    document.getElementById('half_ppr_table').innerHTML = table;
+    document.getElementById('standard_table').innerHTML = table;
+
+    console.log("Table updated with items:", items);  // Debugging line
+}
+</script>

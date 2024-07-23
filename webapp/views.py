@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, send_from_directory
+from flask import Blueprint, render_template, url_for, flash, redirect, request, send_from_directory, jsonify
 from flask_login import login_user, current_user, logout_user, login_required, LoginManager, UserMixin
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from webapp.forms import LoginForm, RegistrationForm
-from webapp import db, User
+from webapp.forms import LoginForm, RegistrationForm, ListItemForm
+from webapp import db, User, UserList, ListItem
 
 
 main = Blueprint('main', __name__)
@@ -56,24 +56,61 @@ def about():
 def contact():
     return render_template('contact.html')
 
-def get_csv_data(filename):
-    # Read CSV file and select specific columns
-    df = pd.read_csv(filename, usecols=['Name', 'Team', 'Position', 'ESPN ADP'])
-    # Convert to HTML table
-    html_table = df.to_html(classes='table table-striped', index=False)
-    return html_table
+# def get_csv_data(filename):
+#     # Read CSV file and select specific columns
+#     df = pd.read_csv(filename, usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+#     # Convert to HTML table
+#     html_table = df.to_html(classes='table table-striped', index=False)
+#     return html_table
 
-@main.route('/rankings')
+@main.route('/rankings', methods=['GET', 'POST'])
 @login_required
 def rankings():
-    ppr_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Full PPR Rankings with Weighted VBD.csv')
-    half_ppr_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Half PPR Rankings with Weighted VBD.csv')
-    standard_table = get_csv_data('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Non PPR Rankings with Weighted VBD.csv')
-    return render_template('rankings.html', ppr_table=ppr_table, half_ppr_table=half_ppr_table, standard_table=standard_table)
+    form = ListItemForm()
+    user_list = UserList.query.filter_by(user_id=current_user.id).first()
+    if not user_list:
+        user_list = UserList(user_id=current_user.id, name="My List")
+        db.session.add(user_list)
+        db.session.commit()
 
-@main.route('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings/Half PPR Rankings with Weighted VBD.csv')
-def get_csv(filename):
-    return send_from_directory('/Users/kmaran3/Dropbox/Darkhorse/Final Rankings', filename)
+    if form.validate_on_submit():
+        return redirect(url_for('main.save_list'))
+
+    items = ListItem.query.filter_by(list_id=user_list.id).all()
+    return render_template('rankings.html', form=form, items=items)
+
+@main.route('/save_list', methods=['GET','POST'])
+@login_required
+def save_list():
+    data = request.get_json()
+    list_data = data.get('list', [])
+
+    user_list = UserList.query.filter_by(user_id=current_user.id).first()
+    if not user_list:
+        user_list = UserList(user_id=current_user.id, name="My List")
+        db.session.add(user_list)
+        db.session.commit()
+
+    # Clear existing items
+    ListItem.query.filter_by(list_id=user_list.id).delete()
+
+    # Add new items
+    for idx, item_id in enumerate(list_data):
+        new_item = ListItem(content=item_id, list_id=user_list.id)
+        db.session.add(new_item)
+
+    db.session.commit()
+    return jsonify({'message': 'List saved successfully!'})
+
+
+@main.route('/delete_list/<int:list_id>', methods=['POST'])
+@login_required
+def delete_list(list_id):
+    user_list = UserList.query.filter_by(id=list_id, user_id=current_user.id).first_or_404()
+    ListItem.query.filter_by(list_id=user_list.id).delete()
+    db.session.delete(user_list)
+    db.session.commit()
+    return jsonify({'message': 'List deleted successfully!'})
 
 @main.route('/mockdraft', methods=['GET', 'POST'])
 @login_required
@@ -106,3 +143,18 @@ def fetch_player_data():
         return player_data_sorted
     else:
         return []
+    
+@main.route('/api/ppr', methods=['GET'])
+def get_ppr_data():
+    df = pd.read_csv('Final Rankings/Full PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    return jsonify(df.to_dict(orient='records'))
+
+@main.route('/api/half_ppr', methods=['GET'])
+def get_half_ppr_data():
+    df = pd.read_csv('Final Rankings/Half PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    return jsonify(df.to_dict(orient='records'))
+
+@main.route('/api/standard', methods=['GET'])
+def get_standard_data():
+    df = pd.read_csv('Final Rankings/Non PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    return jsonify(df.to_dict(orient='records'))

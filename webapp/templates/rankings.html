@@ -4,35 +4,131 @@
 
 {% block content %}
 <h1>Player Rankings</h1>
-<div class="btn-group-vertical mb-3" role="group" aria-label="CSV Selector" style="position: fixed;">
-    <button class="btn btn-primary" id="ppr_btn" onclick="showTable('ppr')">PPR</button>
-    <button class="btn btn-primary" id="half_ppr_btn" onclick="showTable('half_ppr')">Half PPR</button>
-    <button class="btn btn-primary" id="standard_btn" onclick="showTable('standard')">Standard</button>
+<div class="left-panel">
+    <h2>Ranking Type</h2>
+    <div class="btn-group-vertical mb-3" role="group" aria-label="CSV Selector">
+        <button class="btn btn-primary btn-bold" id="ppr_btn" onclick="showTable('ppr')">PPR</button>
+        <button class="btn btn-primary" id="half_ppr_btn" onclick="showTable('half_ppr')">Half PPR</button>
+        <button class="btn btn-primary" id="standard_btn" onclick="showTable('standard')">Standard</button>
+    </div>
+    {% include 'list.html' %}
 </div>
 
-<div id="ppr_table" class="ranking-table">
-    {{ ppr_table|safe }}
-</div>
-<div id="half_ppr_table" class="ranking-table" style="display:none;">
-    {{ half_ppr_table|safe }}
-</div>
-<div id="standard_table" class="ranking-table" style="display:none;">
-    {{ standard_table|safe }}
-</div>
+<div id="ranking_table" class="ranking-table"></div>
 
 <script>
-function showTable(type) {
-    document.getElementById('ppr_table').style.display = 'none';
-    document.getElementById('half_ppr_table').style.display = 'none';
-    document.getElementById('standard_table').style.display = 'none';
-    document.getElementById(type + '_table').style.display = 'block';
+function fetchAndRenderTable(type) {
+    console.log(`Fetching data for: ${type}`);
+    fetch(`http://127.0.0.1:5000/api/${type}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Data fetched for ${type}:`, data);
+            renderTable(type, data);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
 
+function renderTable(type, data) {
+    const tableContainer = document.getElementById('ranking_table');
+    tableContainer.innerHTML = ''; // Clear existing table
+
+    const table = document.createElement('table');
+    table.classList.add('table', 'table-striped');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    if (data.length > 0) {
+        const headers = Object.keys(data[0]);
+
+        const tr = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-id', row.id); // Assuming each row has an 'id' field
+            Object.values(row).forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    } else {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 100; // Assuming 100 columns max
+        td.textContent = 'No data available';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+}
+
+function showTable(type) {
     document.getElementById('ppr_btn').classList.remove('btn-bold');
     document.getElementById('half_ppr_btn').classList.remove('btn-bold');
     document.getElementById('standard_btn').classList.remove('btn-bold');
 
     document.getElementById(type + '_btn').classList.add('btn-bold');
+
+    fetchAndRenderTable(type);
 }
+
+$(document).ready(function() {
+    let isReordered = false;
+
+    $('#ranking_table').sortable({
+        items: 'tr',
+        cursor: 'move',
+        opacity: 0.6,
+        update: function(event, ui) {
+            // Enable the save list button when rows are reordered
+            isReordered = true;
+            $('#saveListButton').prop('disabled', false);
+            console.log('Rows reordered');
+        }
+    }).disableSelection();
+
+    $('#saveListButton').click(function() {
+        if (isReordered) {
+            let rows = $('#ranking_table table tr');
+            let listData = [];
+
+            rows.each(function(index, row) {
+                listData.push($(row).data('id')); // Assuming each row has a data-id attribute
+            });
+
+            $.ajax({
+                url: '/save_list',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ list: listData }),
+                success: function(response) {
+                    console.log('List saved successfully:', response);
+                    alert('List saved successfully!');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to save list:', error);
+                    alert('Failed to save list.');
+                }
+            });
+        }
+    });
+});
 </script>
 {% endblock %}
-

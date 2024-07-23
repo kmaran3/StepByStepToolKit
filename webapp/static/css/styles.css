@@ -7,10 +7,18 @@ body {
     min-height: 100vh;
 }
 
-header {
-    background-color: #333;
-    color: #f8f39fee;
-    padding: 1em 0;
+
+header.banner {
+    width: 100%;
+    background-color: #333; /* Change this to the color you want */
+    color: #f8f39fee; /* Text color */
+    text-align: center; /* Center the text */
+    padding: 20px 0; /* Top and bottom padding */
+    box-sizing: border-box; /* Ensure padding is included in width calculation */
+    position: fixed; /* Make the banner stay at the top */
+    top: 0;
+    left: 0;
+    z-index: 1000; /* Ensure the banner stays on top of other content */
 }
 
 nav ul {
@@ -31,11 +39,12 @@ nav ul li {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    position: fixed; /* Keeps the button group fixed on the page */
+    position: fixed;
+    top: 170px;
 }
 
 .btn-group-vertical .btn {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .btn-bold {
@@ -114,7 +123,7 @@ footer {
 }
 
 table {
-    width: 80%;
+    width: 65%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -123,4 +132,29 @@ th, td {
     padding: 8px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+}
+
+.left-panel {
+    position: fixed; /* Keeps the panel fixed on the page */
+    top: 100px; /* Adjust this value to position the panel higher or lower */
+    left: 40px; /* Adjust this value to position the panel left or right */
+    width: 130px; /* Adjust the width as needed */
+    padding: 5px; /* Optional: Add some padding */
+    background-color: #555; /* Optional: Add a background color */ /* Optional: Add a border */
+    /* box-shadow: 0 0 10px rgba(117, 108, 108, 0.1); */
+    font-size: 0.65em; /* Optional: Add a shadow */
+    color: #f8f39fee;
+    flex-direction: column;
+}
+.btn-group-vertical {
+    flex-grow: 1;
+}
+.saved-lists {
+    left: 40px;
+    position: fixed;
+    top: 280px;
+    background-color: #555;
+    color: #f8f39fee;
+    width: 130px;
+    font-size: 1.2em;
 }

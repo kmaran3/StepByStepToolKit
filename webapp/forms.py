@@ -13,3 +13,7 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
+
+class ListItemForm(FlaskForm):
+    content = StringField('List Name', validators=[DataRequired()])
+    submit = SubmitField('Save List')
