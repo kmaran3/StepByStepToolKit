@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, send_from_directory, jsonify
-from flask_login import login_user, current_user, logout_user, login_required, LoginManager, UserMixin
+from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify
+from flask_login import login_user, current_user, logout_user, login_required
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from webapp.forms import LoginForm, RegistrationForm, ListItemForm
 from webapp import db, User, UserList, ListItem
-
+import logging
 
 main = Blueprint('main', __name__)
 
@@ -47,7 +47,6 @@ def register():
 def home():
     return render_template('home.html')
 
-
 @main.route('/about')
 def about():
     return render_template('about.html')
@@ -55,13 +54,6 @@ def about():
 @main.route('/contact')
 def contact():
     return render_template('contact.html')
-
-# def get_csv_data(filename):
-#     # Read CSV file and select specific columns
-#     df = pd.read_csv(filename, usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
-#     # Convert to HTML table
-#     html_table = df.to_html(classes='table table-striped', index=False)
-#     return html_table
 
 @main.route('/rankings', methods=['GET', 'POST'])
 @login_required
@@ -79,7 +71,7 @@ def rankings():
     items = ListItem.query.filter_by(list_id=user_list.id).all()
     return render_template('rankings.html', form=form, items=items)
 
-@main.route('/save_list', methods=['GET','POST'])
+@main.route('/save_list', methods=['GET', 'POST'])
 @login_required
 def save_list():
     data = request.get_json()
@@ -101,7 +93,6 @@ def save_list():
 
     db.session.commit()
     return jsonify({'message': 'List saved successfully!'})
-
 
 @main.route('/delete_list/<int:list_id>', methods=['POST'])
 @login_required
@@ -143,18 +134,27 @@ def fetch_player_data():
         return player_data_sorted
     else:
         return []
-    
+
+def convert_nan_to_na(df):
+    return df.where(pd.notnull(df), "NA")
+
 @main.route('/api/ppr', methods=['GET'])
 def get_ppr_data():
-    df = pd.read_csv('Final Rankings/Full PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
-    return jsonify(df.to_dict(orient='records'))
+    df = pd.read_csv('Final Rankings/Full PPR Rankings with Weighted VBD.csv', usecols=['Rank', 'Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    df = convert_nan_to_na(df)
+    data = df.to_dict(orient='records')
+    return jsonify(data)
 
 @main.route('/api/half_ppr', methods=['GET'])
 def get_half_ppr_data():
-    df = pd.read_csv('Final Rankings/Half PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
-    return jsonify(df.to_dict(orient='records'))
+    df = pd.read_csv('Final Rankings/Half PPR Rankings with Weighted VBD.csv', usecols=['Rank', 'Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    df = convert_nan_to_na(df)
+    data = df.to_dict(orient='records')
+    return jsonify(data)
 
 @main.route('/api/standard', methods=['GET'])
 def get_standard_data():
-    df = pd.read_csv('Final Rankings/Non PPR Rankings with Weighted VBD.csv',usecols=['Rank','Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
-    return jsonify(df.to_dict(orient='records'))
+    df = pd.read_csv('Final Rankings/Non PPR Rankings with Weighted VBD.csv', usecols=['Rank', 'Name', 'Team', 'Position', 'Bye Week', 'ESPN ADP'])
+    df = convert_nan_to_na(df)
+    data = df.to_dict(orient='records')
+    return jsonify(data)
