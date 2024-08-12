@@ -1,3 +1,5 @@
+RUNNING THE FANTASY RANKING MODEL:
+
 Download the 'Models' folder
     
 Within folder: Roster Creation
@@ -34,4 +36,9 @@ In Rosters.ipynb, you can adjust the years you want to use for current year rost
 The Years in Rosters.ipynb and PositionalData.ipynb should be the same years, so ensure they are the same for all the code to work.
 
 Lastly, VBD.ipynb has merged the model created rankings at 30% and ESPN ADP at 70%. These weights can be changed to whatever you like as well.
+
+RUNNING THE WEB APP:
+
+Download the 'webapp' folder
+
 
