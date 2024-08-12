@@ -1,5 +1,5 @@
 Download the 'Models' folder
-
+    
 Within folder: Roster Creation
     Run Rosters.ipynb (Creates current year roster and past rosters for last 10 seasons)
 Within folder: progress position group data
