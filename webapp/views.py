@@ -1,11 +1,10 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify
+from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, current_app as app
 from flask_login import login_user, current_user, logout_user, login_required
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from webapp.forms import LoginForm, RegistrationForm, ListItemForm
-from webapp import db, User, UserList, ListItem
-import logging
+from webapp.forms import LoginForm, RegistrationForm
+from webapp import db, User
 
 main = Blueprint('main', __name__)
 
@@ -58,50 +57,7 @@ def contact():
 @main.route('/rankings', methods=['GET', 'POST'])
 @login_required
 def rankings():
-    form = ListItemForm()
-    user_list = UserList.query.filter_by(user_id=current_user.id).first()
-    if not user_list:
-        user_list = UserList(user_id=current_user.id, name="My List")
-        db.session.add(user_list)
-        db.session.commit()
-
-    if form.validate_on_submit():
-        return redirect(url_for('main.save_list'))
-
-    items = ListItem.query.filter_by(list_id=user_list.id).all()
-    return render_template('rankings.html', form=form, items=items)
-
-@main.route('/save_list', methods=['GET', 'POST'])
-@login_required
-def save_list():
-    data = request.get_json()
-    list_data = data.get('list', [])
-
-    user_list = UserList.query.filter_by(user_id=current_user.id).first()
-    if not user_list:
-        user_list = UserList(user_id=current_user.id, name="My List")
-        db.session.add(user_list)
-        db.session.commit()
-
-    # Clear existing items
-    ListItem.query.filter_by(list_id=user_list.id).delete()
-
-    # Add new items
-    for idx, item_id in enumerate(list_data):
-        new_item = ListItem(content=item_id, list_id=user_list.id)
-        db.session.add(new_item)
-
-    db.session.commit()
-    return jsonify({'message': 'List saved successfully!'})
-
-@main.route('/delete_list/<int:list_id>', methods=['POST'])
-@login_required
-def delete_list(list_id):
-    user_list = UserList.query.filter_by(id=list_id, user_id=current_user.id).first_or_404()
-    ListItem.query.filter_by(list_id=user_list.id).delete()
-    db.session.delete(user_list)
-    db.session.commit()
-    return jsonify({'message': 'List deleted successfully!'})
+    return render_template('rankings.html')
 
 @main.route('/mockdraft', methods=['GET', 'POST'])
 @login_required

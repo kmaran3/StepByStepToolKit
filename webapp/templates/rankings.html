@@ -11,7 +11,6 @@
         <button class="btn btn-primary" id="half_ppr_btn" onclick="showTable('half_ppr')">Half PPR</button>
         <button class="btn btn-primary" id="standard_btn" onclick="showTable('standard')">Standard</button>
     </div>
-    {% include 'list.html' %}
 </div>
 
 <div id="ranking_table" class="ranking-table"></div>
@@ -103,32 +102,6 @@ $(document).ready(function() {
             console.log('Rows reordered');
         }
     }).disableSelection();
-
-    $('#saveListButton').click(function() {
-        if (isReordered) {
-            let rows = $('#ranking_table table tr');
-            let listData = [];
-
-            rows.each(function(index, row) {
-                listData.push($(row).data('id')); // Assuming each row has a data-id attribute
-            });
-
-            $.ajax({
-                url: '/save_list',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ list: listData }),
-                success: function(response) {
-                    console.log('List saved successfully:', response);
-                    alert('List saved successfully!');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Failed to save list:', error);
-                    alert('Failed to save list.');
-                }
-            });
-        }
-    });
 });
 </script>
 {% endblock %}
